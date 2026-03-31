@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #04AA6D;
+  --color-secondary: #212121;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-2.5 bg-[#04AA6D] text-white rounded-full font-bold hover:bg-[#059862] transition shadow-md border-none cursor-pointer;
+  }
+  
+  .btn-outline {
+    @apply px-6 py-2.5 bg-white text-gray-800 border-2 border-gray-200 rounded-full font-bold hover:bg-gray-50 transition;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8;
+  }
+}
+
+/* Custom Scrollbar for better UI */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition;
+}
+
+/* Hide scrollbar for language bar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Form Styles - no global input padding to avoid conflicts with icon inputs */
