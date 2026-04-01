@@ -1,29 +1,36 @@
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine, Base
-from app import models, auth
+from app import models
 
 def seed_data():
     db = SessionLocal()
-    
+
     # Create tables
     Base.metadata.create_all(bind=engine)
 
-    # Add Courses
+    # Clear existing data for clean re-seed
+    db.query(models.Question).delete()
+    db.query(models.Lesson).delete()
+    db.query(models.UserScore).delete()
+    db.query(models.Course).delete()
+    db.commit()
+
+    # Add Courses - 10 languages
     courses_data = [
-        {"name": "HTML", "description": "The language for building web pages"},
-        {"name": "CSS", "description": "The language for styling web pages"},
-        {"name": "JavaScript", "description": "The language for programming web pages"},
-        {"name": "Python", "description": "A versatile and popular programming language"},
-        {"name": "SQL", "description": "The language for querying databases"},
+        {"name": "HTML", "description": "The standard markup language for creating web pages and web applications."},
+        {"name": "CSS", "description": "The stylesheet language used for describing the presentation of web documents."},
+        {"name": "JavaScript", "description": "The programming language of the web, used for interactive web pages."},
+        {"name": "Python", "description": "A versatile, high-level programming language known for its readability."},
+        {"name": "SQL", "description": "The standard language for storing, manipulating, and retrieving data in databases."},
+        {"name": "Java", "description": "A popular object-oriented programming language used for enterprise applications."},
+        {"name": "C++", "description": "A powerful general-purpose programming language for system and application software."},
+        {"name": "React", "description": "A JavaScript library for building user interfaces and single-page applications."},
+        {"name": "PHP", "description": "A widely-used server-side scripting language for web development."},
+        {"name": "TypeScript", "description": "A typed superset of JavaScript that compiles to plain JavaScript."},
     ]
 
     for c in courses_data:
-        existing = db.query(models.Course).filter(models.Course.name == c["name"]).first()
-        if existing:
-            existing.description = c["description"]
-        else:
-            db.add(models.Course(**c))
-    
+        db.add(models.Course(**c))
     db.commit()
 
     # Get course IDs
@@ -32,286 +39,189 @@ def seed_data():
     js_id = db.query(models.Course).filter(models.Course.name == "JavaScript").first().id
     python_id = db.query(models.Course).filter(models.Course.name == "Python").first().id
     sql_id = db.query(models.Course).filter(models.Course.name == "SQL").first().id
+    java_id = db.query(models.Course).filter(models.Course.name == "Java").first().id
+    cpp_id = db.query(models.Course).filter(models.Course.name == "C++").first().id
+    react_id = db.query(models.Course).filter(models.Course.name == "React").first().id
+    php_id = db.query(models.Course).filter(models.Course.name == "PHP").first().id
+    ts_id = db.query(models.Course).filter(models.Course.name == "TypeScript").first().id
 
-    # Add Lessons
-    lessons_data = [
-        {"course_id": html_id, "title": "HTML Introduction", "content": "# What is HTML?\nHTML stands for HyperText Markup Language. It is the standard markup language for creating web pages.", "order": 1},
-        {"course_id": html_id, "title": "HTML Elements", "content": "# HTML Elements\nAn HTML element is defined by a start tag, some content, and an end tag.", "order": 2},
-        {"course_id": css_id, "title": "CSS Introduction", "content": "# What is CSS?\nCSS stands for Cascading Style Sheets. It describes how HTML elements are to be displayed on screen.", "order": 1},
-        {"course_id": js_id, "title": "JS Variables", "content": "# JavaScript Variables\nVariables are containers for storing data values.", "order": 1},
-        {"course_id": python_id, "title": "Python Syntax", "content": "# Python Syntax\nPython syntax can be executed by writing directly in the Command Line.", "order": 1},
-        {"course_id": sql_id, "title": "SQL SELECT", "content": "# SQL SELECT Statement\nThe SELECT statement is used to select data from a database.", "order": 1},
-    ]
-
-    for l in lessons_data:
-        if not db.query(models.Lesson).filter(models.Lesson.title == l["title"]).first():
-            db.add(models.Lesson(**l))
-
-    # Add Questions (Quizzes) - 5 per language
     questions_data = [
-        # HTML Questions (5)
-        {
-            "course_id": html_id,
-            "question": "What does HTML stand for?",
-            "option_a": "Hyper Text Markup Language",
-            "option_b": "Hyperlinks and Text Markup Language",
-            "option_c": "Home Tool Markup Language",
-            "option_d": "Hyper Tool Markup Language",
-            "correct_answer": "a",
-            "explanation": "HTML stands for Hyper Text Markup Language."
-        },
-        {
-            "course_id": html_id,
-            "question": "Which HTML element is used for the largest heading?",
-            "option_a": "<head>",
-            "option_b": "<h6>",
-            "option_c": "<h1>",
-            "option_d": "<heading>",
-            "correct_answer": "c",
-            "explanation": "<h1> is the largest heading tag."
-        },
-        {
-            "course_id": html_id,
-            "question": "Which HTML attribute specifies an alternate text for an image?",
-            "option_a": "title",
-            "option_b": "alt",
-            "option_c": "src",
-            "option_d": "longdesc",
-            "correct_answer": "b",
-            "explanation": "The alt attribute provides alternative text for an image."
-        },
-        {
-            "course_id": html_id,
-            "question": "Which element is used to create an unordered list?",
-            "option_a": "<ol>",
-            "option_b": "<list>",
-            "option_c": "<ul>",
-            "option_d": "<dl>",
-            "correct_answer": "c",
-            "explanation": "<ul> creates an unordered (bulleted) list."
-        },
-        {
-            "course_id": html_id,
-            "question": "What is the correct HTML element for inserting a line break?",
-            "option_a": "<break>",
-            "option_b": "<lb>",
-            "option_c": "<br>",
-            "option_d": "<newline>",
-            "correct_answer": "c",
-            "explanation": "<br> inserts a single line break."
-        },
-        # CSS Questions (5)
-        {
-            "course_id": css_id,
-            "question": "What does CSS stand for?",
-            "option_a": "Computer Style Sheets",
-            "option_b": "Cascading Style Sheets",
-            "option_c": "Colorful Style Sheets",
-            "option_d": "Creative Style Sheets",
-            "correct_answer": "b",
-            "explanation": "CSS stands for Cascading Style Sheets."
-        },
-        {
-            "course_id": css_id,
-            "question": "Which property is used to change the background color?",
-            "option_a": "bgcolor",
-            "option_b": "color",
-            "option_c": "background-color",
-            "option_d": "background",
-            "correct_answer": "c",
-            "explanation": "The background-color property sets the background color of an element."
-        },
-        {
-            "course_id": css_id,
-            "question": "Which CSS property controls the text size?",
-            "option_a": "font-style",
-            "option_b": "text-size",
-            "option_c": "font-size",
-            "option_d": "text-style",
-            "correct_answer": "c",
-            "explanation": "font-size is used to control the size of text."
-        },
-        {
-            "course_id": css_id,
-            "question": "How do you select an element with id 'demo'?",
-            "option_a": ".demo",
-            "option_b": "*demo",
-            "option_c": "#demo",
-            "option_d": "demo",
-            "correct_answer": "c",
-            "explanation": "The # symbol is used to select elements by their id."
-        },
-        {
-            "course_id": css_id,
-            "question": "Which property is used to change the font of an element?",
-            "option_a": "font-style",
-            "option_b": "font-weight",
-            "option_c": "font-family",
-            "option_d": "font-variant",
-            "correct_answer": "c",
-            "explanation": "font-family specifies the font for an element."
-        },
-        # JavaScript Questions (5)
-        {
-            "course_id": js_id,
-            "question": "Inside which HTML element do we put the JavaScript?",
-            "option_a": "<js>",
-            "option_b": "<scripting>",
-            "option_c": "<javascript>",
-            "option_d": "<script>",
-            "correct_answer": "d",
-            "explanation": "The <script> tag is used to embed JavaScript."
-        },
-        {
-            "course_id": js_id,
-            "question": "How do you write 'Hello World' in an alert box?",
-            "option_a": "alertBox('Hello World');",
-            "option_b": "msgBox('Hello World');",
-            "option_c": "alert('Hello World');",
-            "option_d": "msg('Hello World');",
-            "correct_answer": "c",
-            "explanation": "The alert() function displays an alert box."
-        },
-        {
-            "course_id": js_id,
-            "question": "How do you create a function in JavaScript?",
-            "option_a": "function myFunction()",
-            "option_b": "function:myFunction()",
-            "option_c": "function = myFunction()",
-            "option_d": "create myFunction()",
-            "correct_answer": "a",
-            "explanation": "The correct syntax is function myFunction()."
-        },
-        {
-            "course_id": js_id,
-            "question": "How do you call a function named 'myFunction'?",
-            "option_a": "call myFunction()",
-            "option_b": "call function myFunction()",
-            "option_c": "myFunction()",
-            "option_d": "execute myFunction()",
-            "correct_answer": "c",
-            "explanation": "You call a function by writing its name followed by parentheses."
-        },
-        {
-            "course_id": js_id,
-            "question": "Which operator is used to assign a value to a variable?",
-            "option_a": "*",
-            "option_b": "-",
-            "option_c": "=",
-            "option_d": "x",
-            "correct_answer": "c",
-            "explanation": "The = operator assigns a value to a variable."
-        },
-        # Python Questions (5)
-        {
-            "course_id": python_id,
-            "question": "Which keyword is used to create a function in Python?",
-            "option_a": "function",
-            "option_b": "def",
-            "option_c": "create",
-            "option_d": "lambda",
-            "correct_answer": "b",
-            "explanation": "In Python, 'def' is used to define functions."
-        },
-        {
-            "course_id": python_id,
-            "question": "Which method is used to add an element to a list?",
-            "option_a": "add()",
-            "option_b": "push()",
-            "option_c": "append()",
-            "option_d": "insert()",
-            "correct_answer": "c",
-            "explanation": "The append() method adds an element to the end of a list."
-        },
-        {
-            "course_id": python_id,
-            "question": "What is the output of print(2 ** 3)?",
-            "option_a": "6",
-            "option_b": "8",
-            "option_c": "9",
-            "option_d": "5",
-            "correct_answer": "b",
-            "explanation": "** is the exponentiation operator. 2^3 = 8."
-        },
-        {
-            "course_id": python_id,
-            "question": "Which of these is NOT a valid Python data type?",
-            "option_a": "int",
-            "option_b": "float",
-            "option_c": "char",
-            "option_d": "str",
-            "correct_answer": "c",
-            "explanation": "Python does not have a 'char' data type. It uses 'str' for characters."
-        },
-        {
-            "course_id": python_id,
-            "question": "How do you start a comment in Python?",
-            "option_a": "//",
-            "option_b": "/*",
-            "option_c": "#",
-            "option_d": "<!--",
-            "correct_answer": "c",
-            "explanation": "In Python, comments start with #."
-        },
-        # SQL Questions (5)
-        {
-            "course_id": sql_id,
-            "question": "What does SQL stand for?",
-            "option_a": "Structured Query Language",
-            "option_b": "Strong Question Language",
-            "option_c": "Structured Question Language",
-            "option_d": "Simple Query Language",
-            "correct_answer": "a",
-            "explanation": "SQL stands for Structured Query Language."
-        },
-        {
-            "course_id": sql_id,
-            "question": "Which SQL statement is used to extract data from a database?",
-            "option_a": "EXTRACT",
-            "option_b": "GET",
-            "option_c": "SELECT",
-            "option_d": "OPEN",
-            "correct_answer": "c",
-            "explanation": "The SELECT statement is used to extract data."
-        },
-        {
-            "course_id": sql_id,
-            "question": "Which SQL statement is used to update data in a database?",
-            "option_a": "MODIFY",
-            "option_b": "SAVE",
-            "option_c": "UPDATE",
-            "option_d": "CHANGE",
-            "correct_answer": "c",
-            "explanation": "The UPDATE statement is used to modify existing data."
-        },
-        {
-            "course_id": sql_id,
-            "question": "Which SQL clause is used to filter records?",
-            "option_a": "FILTER",
-            "option_b": "WHERE",
-            "option_c": "HAVING",
-            "option_d": "LIMIT",
-            "correct_answer": "b",
-            "explanation": "The WHERE clause filters records based on conditions."
-        },
-        {
-            "course_id": sql_id,
-            "question": "Which SQL statement is used to delete data from a database?",
-            "option_a": "REMOVE",
-            "option_b": "COLLAPSE",
-            "option_c": "DELETE",
-            "option_d": "DROP",
-            "correct_answer": "c",
-            "explanation": "The DELETE statement removes rows from a table."
-        },
+        # ==================== HTML Questions (15) ====================
+        {"course_id": html_id, "question": "What does HTML stand for?", "option_a": "Hyper Text Markup Language", "option_b": "Hyperlinks and Text Markup Language", "option_c": "Home Tool Markup Language", "option_d": "Hyper Tool Markup Language", "correct_answer": "a", "explanation": "HTML stands for Hyper Text Markup Language. It is the standard markup language for creating web pages."},
+        {"course_id": html_id, "question": "Which HTML element is used for the largest heading?", "option_a": "<head>", "option_b": "<h6>", "option_c": "<h1>", "option_d": "<heading>", "correct_answer": "c", "explanation": "<h1> defines the most important (largest) heading. <h6> defines the least important heading."},
+        {"course_id": html_id, "question": "Which HTML attribute specifies an alternate text for an image?", "option_a": "title", "option_b": "alt", "option_c": "src", "option_d": "longdesc", "correct_answer": "b", "explanation": "The alt attribute provides alternative text for an image if the image cannot be displayed."},
+        {"course_id": html_id, "question": "Which element is used to create an unordered list?", "option_a": "<ol>", "option_b": "<list>", "option_c": "<ul>", "option_d": "<dl>", "correct_answer": "c", "explanation": "<ul> creates an unordered (bulleted) list. <ol> creates an ordered (numbered) list."},
+        {"course_id": html_id, "question": "What is the correct HTML element for inserting a line break?", "option_a": "<break>", "option_b": "<lb>", "option_c": "<br>", "option_d": "<newline>", "correct_answer": "c", "explanation": "<br> is an empty element that inserts a single line break."},
+        {"course_id": html_id, "question": "Which HTML element defines the title of a document?", "option_a": "<meta>", "option_b": "<title>", "option_c": "<header>", "option_d": "<head>", "correct_answer": "b", "explanation": "The <title> element defines the title of the document shown in the browser's title bar or tab."},
+        {"course_id": html_id, "question": "Which HTML element is used to define an internal style sheet?", "option_a": "<script>", "option_b": "<css>", "option_c": "<style>", "option_d": "<link>", "correct_answer": "c", "explanation": "The <style> element is used to define internal CSS styles within an HTML document."},
+        {"course_id": html_id, "question": "Which attribute is used to specify that an input field must be filled out?", "option_a": "validate", "option_b": "placeholder", "option_c": "required", "option_d": "important", "correct_answer": "c", "explanation": "The required attribute specifies that an input field must be filled out before submitting the form."},
+        {"course_id": html_id, "question": "How can you make a numbered list?", "option_a": "<ul>", "option_b": "<dl>", "option_c": "<list>", "option_d": "<ol>", "correct_answer": "d", "explanation": "<ol> stands for ordered list and creates a numbered list."},
+        {"course_id": html_id, "question": "Which HTML element is used to define important text?", "option_a": "<important>", "option_b": "<b>", "option_c": "<strong>", "option_d": "<i>", "correct_answer": "c", "explanation": "The <strong> element defines important text. The content is typically displayed in bold."},
+        {"course_id": html_id, "question": "Which HTML element is used for creating a hyperlink?", "option_a": "<link>", "option_b": "<a>", "option_c": "<href>", "option_d": "<hyperlink>", "correct_answer": "b", "explanation": "The <a> (anchor) element creates a hyperlink. The href attribute specifies the URL of the page the link goes to."},
+        {"course_id": html_id, "question": "Which doctype is correct for HTML5?", "option_a": "<!DOCTYPE html>", "option_b": "<!DOCTYPE HTML5>", "option_c": "<!DOCTYPE html5>", "option_d": "<doctype html>", "correct_answer": "a", "explanation": "<!DOCTYPE html> is the correct doctype declaration for HTML5. It must be the very first thing in your HTML document."},
+        {"course_id": html_id, "question": "Which HTML element is used to define a table row?", "option_a": "<td>", "option_b": "<th>", "option_c": "<tr>", "option_d": "<table>", "correct_answer": "c", "explanation": "The <tr> element defines a table row. <td> defines table data cells, and <th> defines table header cells."},
+        {"course_id": html_id, "question": "Which input type is used for selecting a date?", "option_a": "type='calendar'", "option_b": "type='datetime'", "option_c": "type='date'", "option_d": "type='day'", "correct_answer": "c", "explanation": "The input type='date' creates a date picker that allows the user to select a date."},
+        {"course_id": html_id, "question": "What is the purpose of the <div> element?", "option_a": "To create a hyperlink", "option_b": "To group block-level content", "option_c": "To display an image", "option_d": "To define a paragraph", "correct_answer": "b", "explanation": "The <div> element is used as a container to group block-level elements for styling with CSS or manipulation with JavaScript."},
+
+        # ==================== CSS Questions (15) ====================
+        {"course_id": css_id, "question": "What does CSS stand for?", "option_a": "Computer Style Sheets", "option_b": "Cascading Style Sheets", "option_c": "Colorful Style Sheets", "option_d": "Creative Style Sheets", "correct_answer": "b", "explanation": "CSS stands for Cascading Style Sheets. It describes how HTML elements should be displayed."},
+        {"course_id": css_id, "question": "Which property is used to change the background color?", "option_a": "bgcolor", "option_b": "color", "option_c": "background-color", "option_d": "background", "correct_answer": "c", "explanation": "The background-color property sets the background color of an element."},
+        {"course_id": css_id, "question": "Which CSS property controls the text size?", "option_a": "font-style", "option_b": "text-size", "option_c": "font-size", "option_d": "text-style", "correct_answer": "c", "explanation": "font-size is the CSS property used to control the size of text."},
+        {"course_id": css_id, "question": "How do you select an element with id 'demo'?", "option_a": ".demo", "option_b": "*demo", "option_c": "#demo", "option_d": "demo", "correct_answer": "c", "explanation": "The # symbol is used in CSS to select elements by their id attribute."},
+        {"course_id": css_id, "question": "Which property is used to change the font of an element?", "option_a": "font-style", "option_b": "font-weight", "option_c": "font-family", "option_d": "font-variant", "correct_answer": "c", "explanation": "font-family specifies the font for an element. You can list multiple fonts as a fallback system."},
+        {"course_id": css_id, "question": "How do you select elements with class name 'test'?", "option_a": "#test", "option_b": "*test", "option_c": ".test", "option_d": "test", "correct_answer": "c", "explanation": "A period (.) is used to select elements by class name in CSS."},
+        {"course_id": css_id, "question": "How do you make each word in a text start with a capital letter?", "option_a": "text-transform: uppercase", "option_b": "text-transform: capitalize", "option_c": "text-style: capitalize", "option_d": "font-capitalize: true", "correct_answer": "b", "explanation": "text-transform: capitalize transforms the first letter of each word to uppercase."},
+        {"course_id": css_id, "question": "Which property is used to change the left margin of an element?", "option_a": "padding-left", "option_b": "margin-left", "option_c": "indent", "option_d": "left-margin", "correct_answer": "b", "explanation": "margin-left sets the left margin of an element. Margins create space outside an element."},
+        {"course_id": css_id, "question": "How do you make a list that lists its items with squares?", "option_a": "list-type: square", "option_b": "list-style-type: square", "option_c": "list: square", "option_d": "marker: square", "correct_answer": "b", "explanation": "list-style-type: square changes the list item markers to squares."},
+        {"course_id": css_id, "question": "Which property is used to set the spacing between lines?", "option_a": "spacing", "option_b": "line-spacing", "option_c": "line-height", "option_d": "vertical-spacing", "correct_answer": "c", "explanation": "line-height sets the height of a line box, effectively controlling the spacing between lines of text."},
+        {"course_id": css_id, "question": "What is the default value of the position property?", "option_a": "relative", "option_b": "absolute", "option_c": "fixed", "option_d": "static", "correct_answer": "d", "explanation": "The default value of the position property is static. Elements are positioned in the normal flow of the document."},
+        {"course_id": css_id, "question": "Which display value makes an element invisible but still takes up space?", "option_a": "display: none", "option_b": "visibility: hidden", "option_c": "opacity: 0", "option_d": "Both B and C", "correct_answer": "d", "explanation": "Both visibility: hidden and opacity: 0 make an element invisible but it still takes up space. display: none removes it from the flow entirely."},
+        {"course_id": css_id, "question": "Which CSS property is used to create rounded corners?", "option_a": "corner-radius", "option_b": "border-radius", "option_c": "round-corner", "option_d": "border-round", "correct_answer": "b", "explanation": "border-radius is the CSS property used to create rounded corners on an element."},
+        {"course_id": css_id, "question": "What does the z-index property specify?", "option_a": "The zoom level of an element", "option_b": "The stack order of an element", "option_c": "The horizontal position", "option_d": "The vertical position", "correct_answer": "b", "explanation": "z-index specifies the stack order of a positioned element. An element with a higher z-index is displayed in front."},
+        {"course_id": css_id, "question": "Which CSS property is used to create a flexible box layout?", "option_a": "display: block", "option_b": "display: flex", "option_c": "display: grid", "option_d": "display: inline", "correct_answer": "b", "explanation": "display: flex enables the Flexbox layout model, which is great for distributing space and aligning items."},
+
+        # ==================== JavaScript Questions (15) ====================
+        {"course_id": js_id, "question": "Inside which HTML element do we put the JavaScript?", "option_a": "<js>", "option_b": "<scripting>", "option_c": "<javascript>", "option_d": "<script>", "correct_answer": "d", "explanation": "The <script> tag is used to embed or reference JavaScript code in an HTML document."},
+        {"course_id": js_id, "question": "How do you write 'Hello World' in an alert box?", "option_a": "alertBox('Hello World');", "option_b": "msgBox('Hello World');", "option_c": "alert('Hello World');", "option_d": "msg('Hello World');", "correct_answer": "c", "explanation": "The alert() function displays an alert dialog with the specified message and an OK button."},
+        {"course_id": js_id, "question": "How do you create a function in JavaScript?", "option_a": "function myFunction()", "option_b": "function:myFunction()", "option_c": "function = myFunction()", "option_d": "create myFunction()", "correct_answer": "a", "explanation": "The correct syntax is 'function myFunction()' followed by curly braces containing the function body."},
+        {"course_id": js_id, "question": "How do you call a function named 'myFunction'?", "option_a": "call myFunction()", "option_b": "call function myFunction()", "option_c": "myFunction()", "option_d": "execute myFunction()", "correct_answer": "c", "explanation": "You call a function by writing its name followed by parentheses, e.g., myFunction()."},
+        {"course_id": js_id, "question": "Which operator is used to assign a value to a variable?", "option_a": "*", "option_b": "-", "option_c": "=", "option_d": "x", "correct_answer": "c", "explanation": "The = operator is the assignment operator used to assign values to variables."},
+        {"course_id": js_id, "question": "What will typeof null return?", "option_a": "'null'", "option_b": "'undefined'", "option_c": "'object'", "option_d": "'boolean'", "correct_answer": "c", "explanation": "typeof null returns 'object'. This is a well-known bug in JavaScript that has persisted for historical reasons."},
+        {"course_id": js_id, "question": "Which method converts a JSON string to a JavaScript object?", "option_a": "JSON.parse()", "option_b": "JSON.stringify()", "option_c": "JSON.convert()", "option_d": "JSON.toObject()", "correct_answer": "a", "explanation": "JSON.parse() parses a JSON string and returns a JavaScript object. JSON.stringify() does the opposite."},
+        {"course_id": js_id, "question": "Which event occurs when the user clicks on an HTML element?", "option_a": "onchange", "option_b": "onclick", "option_c": "onmouseover", "option_d": "onmouseclick", "correct_answer": "b", "explanation": "The onclick event occurs when the user clicks on an HTML element."},
+        {"course_id": js_id, "question": "How do you declare a variable in JavaScript?", "option_a": "variable name;", "option_b": "v name;", "option_c": "let name;", "option_d": "dim name;", "correct_answer": "c", "explanation": "In modern JavaScript, you declare variables using let (or const for constants). var is also valid but less preferred."},
+        {"course_id": js_id, "question": "Which method is used to find the length of a string?", "option_a": "size()", "option_b": "length", "option_c": "len()", "option_d": "count()", "correct_answer": "b", "explanation": "The length property returns the number of characters in a string. It's a property, not a method."},
+        {"course_id": js_id, "question": "What is the output of '2' + 2 in JavaScript?", "option_a": "4", "option_b": "22", "option_c": "NaN", "option_d": "Error", "correct_answer": "b", "explanation": "When you use + with a string and a number, JavaScript converts the number to a string and concatenates them. So '2' + 2 = '22'."},
+        {"course_id": js_id, "question": "Which keyword is used to define a constant in JavaScript?", "option_a": "let", "option_b": "var", "option_c": "const", "option_d": "constant", "correct_answer": "c", "explanation": "The const keyword declares a block-scoped, read-only constant. It cannot be reassigned."},
+        {"course_id": js_id, "question": "What does the '===' operator do?", "option_a": "Assigns a value", "option_b": "Checks equal value only", "option_c": "Checks equal value and type", "option_d": "Checks not equal", "correct_answer": "c", "explanation": "=== is the strict equality operator. It checks both value AND type without type conversion."},
+        {"course_id": js_id, "question": "Which array method adds elements to the end?", "option_a": "push()", "option_b": "unshift()", "option_c": "add()", "option_d": "append()", "correct_answer": "a", "explanation": "The push() method adds one or more elements to the end of an array and returns the new length."},
+        {"course_id": js_id, "question": "What is a closure in JavaScript?", "option_a": "A way to close the browser", "option_b": "A function with access to its outer scope", "option_c": "A method to end a loop", "option_d": "A type of variable", "correct_answer": "b", "explanation": "A closure is a function that has access to variables in its outer (enclosing) lexical scope, even after the outer function has returned."},
+
+        # ==================== Python Questions (15) ====================
+        {"course_id": python_id, "question": "Which keyword is used to create a function in Python?", "option_a": "function", "option_b": "def", "option_c": "create", "option_d": "lambda", "correct_answer": "b", "explanation": "In Python, the 'def' keyword is used to define functions. Lambda is used for anonymous/inline functions."},
+        {"course_id": python_id, "question": "Which method is used to add an element to a list?", "option_a": "add()", "option_b": "push()", "option_c": "append()", "option_d": "insert()", "correct_answer": "c", "explanation": "The append() method adds an element to the end of a list. insert() adds at a specific index."},
+        {"course_id": python_id, "question": "What is the output of print(2 ** 3)?", "option_a": "6", "option_b": "8", "option_c": "9", "option_d": "5", "correct_answer": "b", "explanation": "** is the exponentiation operator in Python. 2 ** 3 means 2 raised to the power of 3, which is 8."},
+        {"course_id": python_id, "question": "Which of these is NOT a valid Python data type?", "option_a": "int", "option_b": "float", "option_c": "char", "option_d": "str", "correct_answer": "c", "explanation": "Python does not have a 'char' data type. It uses 'str' for both single characters and strings."},
+        {"course_id": python_id, "question": "How do you start a comment in Python?", "option_a": "//", "option_b": "/*", "option_c": "#", "option_d": "<!--", "correct_answer": "c", "explanation": "In Python, single-line comments start with the # symbol. Multi-line comments use triple quotes."},
+        {"course_id": python_id, "question": "What is the correct file extension for Python files?", "option_a": ".pt", "option_b": ".pyt", "option_c": ".py", "option_d": ".python", "correct_answer": "c", "explanation": "Python files use the .py extension. This is the standard recognized by all Python interpreters."},
+        {"course_id": python_id, "question": "Which function is used to get the length of a list?", "option_a": "size()", "option_b": "length()", "option_c": "count()", "option_d": "len()", "correct_answer": "d", "explanation": "The built-in len() function returns the number of items in a list, string, tuple, or other sequences."},
+        {"course_id": python_id, "question": "How do you create a dictionary in Python?", "option_a": "dict = []", "option_b": "dict = {}", "option_c": "dict = ()", "option_d": "dict = <>", "correct_answer": "b", "explanation": "Dictionaries are created using curly braces {} with key-value pairs, e.g., {'key': 'value'}."},
+        {"course_id": python_id, "question": "What keyword is used for exception handling in Python?", "option_a": "catch", "option_b": "except", "option_c": "handle", "option_d": "error", "correct_answer": "b", "explanation": "Python uses try/except blocks for exception handling. 'except' catches the exceptions."},
+        {"course_id": python_id, "question": "What does the 'self' keyword represent in a class?", "option_a": "The class itself", "option_b": "The current instance of the class", "option_c": "A static method", "option_d": "A global variable", "correct_answer": "b", "explanation": "'self' represents the current instance of the class and is used to access variables and methods of the class."},
+        {"course_id": python_id, "question": "Which operator is used for floor division?", "option_a": "/", "option_b": "//", "option_c": "%", "option_d": "**", "correct_answer": "b", "explanation": "The // operator performs floor division, which rounds the result down to the nearest whole number."},
+        {"course_id": python_id, "question": "What is a list comprehension?", "option_a": "A way to read a list", "option_b": "A compact way to create lists", "option_c": "A method to delete lists", "option_d": "A sorting algorithm", "correct_answer": "b", "explanation": "List comprehensions provide a concise way to create lists. Example: [x**2 for x in range(10)]."},
+        {"course_id": python_id, "question": "Which keyword is used for inheritance in Python?", "option_a": "extends", "option_b": "inherits", "option_c": "class ChildClass(ParentClass)", "option_d": "implements", "correct_answer": "c", "explanation": "Python uses parentheses after the class name to indicate inheritance: class Child(Parent)."},
+        {"course_id": python_id, "question": "What does pip stand for?", "option_a": "Python Install Packages", "option_b": "Pip Installs Packages", "option_c": "Python Internal Programs", "option_d": "Package Install Python", "correct_answer": "b", "explanation": "pip is a recursive acronym that stands for 'Pip Installs Packages'. It's Python's package installer."},
+        {"course_id": python_id, "question": "Which built-in function converts a string to an integer?", "option_a": "integer()", "option_b": "str_to_int()", "option_c": "int()", "option_d": "convert()", "correct_answer": "c", "explanation": "The int() built-in function converts a string or a float to an integer value."},
+
+        # ==================== SQL Questions (15) ====================
+        {"course_id": sql_id, "question": "What does SQL stand for?", "option_a": "Structured Query Language", "option_b": "Strong Question Language", "option_c": "Structured Question Language", "option_d": "Simple Query Language", "correct_answer": "a", "explanation": "SQL stands for Structured Query Language. It's the standard language for relational database management systems."},
+        {"course_id": sql_id, "question": "Which SQL statement is used to extract data from a database?", "option_a": "EXTRACT", "option_b": "GET", "option_c": "SELECT", "option_d": "OPEN", "correct_answer": "c", "explanation": "The SELECT statement is used to select data from one or more tables in a database."},
+        {"course_id": sql_id, "question": "Which SQL statement is used to update data in a database?", "option_a": "MODIFY", "option_b": "SAVE", "option_c": "UPDATE", "option_d": "CHANGE", "correct_answer": "c", "explanation": "The UPDATE statement modifies existing records in a table. It uses SET to specify the columns to update."},
+        {"course_id": sql_id, "question": "Which SQL clause is used to filter records?", "option_a": "FILTER", "option_b": "WHERE", "option_c": "HAVING", "option_d": "LIMIT", "correct_answer": "b", "explanation": "The WHERE clause filters records based on specified conditions. HAVING is used with GROUP BY."},
+        {"course_id": sql_id, "question": "Which SQL statement is used to delete data from a database?", "option_a": "REMOVE", "option_b": "COLLAPSE", "option_c": "DELETE", "option_d": "DROP", "correct_answer": "c", "explanation": "DELETE removes rows from a table. DROP removes entire database objects like tables."},
+        {"course_id": sql_id, "question": "Which SQL statement is used to insert new data?", "option_a": "ADD", "option_b": "INSERT INTO", "option_c": "INSERT NEW", "option_d": "ADD INTO", "correct_answer": "b", "explanation": "INSERT INTO is used to insert new records into a table."},
+        {"course_id": sql_id, "question": "Which SQL keyword is used to sort the result-set?", "option_a": "SORT BY", "option_b": "ORDER BY", "option_c": "ARRANGE BY", "option_d": "GROUP BY", "correct_answer": "b", "explanation": "ORDER BY sorts the result-set by one or more columns. Use ASC for ascending, DESC for descending."},
+        {"course_id": sql_id, "question": "Which SQL function returns the number of rows?", "option_a": "SUM()", "option_b": "COUNT()", "option_c": "NUMBER()", "option_d": "TOTAL()", "correct_answer": "b", "explanation": "COUNT() returns the number of rows that matches a specified criterion."},
+        {"course_id": sql_id, "question": "Which type of JOIN returns all rows from both tables?", "option_a": "INNER JOIN", "option_b": "LEFT JOIN", "option_c": "RIGHT JOIN", "option_d": "FULL OUTER JOIN", "correct_answer": "d", "explanation": "FULL OUTER JOIN returns all rows from both tables, matching rows where possible and NULL where there's no match."},
+        {"course_id": sql_id, "question": "What is a PRIMARY KEY?", "option_a": "A field that allows duplicates", "option_b": "A field that uniquely identifies each record", "option_c": "A foreign key reference", "option_d": "An indexed column", "correct_answer": "b", "explanation": "A PRIMARY KEY uniquely identifies each record in a table. It must contain UNIQUE values and cannot be NULL."},
+        {"course_id": sql_id, "question": "Which SQL keyword is used to select unique values only?", "option_a": "UNIQUE", "option_b": "DIFFERENT", "option_c": "DISTINCT", "option_d": "SINGLE", "correct_answer": "c", "explanation": "SELECT DISTINCT returns only unique (different) values, eliminating duplicate rows from the result."},
+        {"course_id": sql_id, "question": "What does the LIKE operator do?", "option_a": "Compares exact values", "option_b": "Searches for a specified pattern", "option_c": "Joins two tables", "option_d": "Sorts results", "correct_answer": "b", "explanation": "The LIKE operator searches for a specified pattern using wildcards (% for any characters, _ for single character)."},
+        {"course_id": sql_id, "question": "Which constraint prevents NULL values?", "option_a": "UNIQUE", "option_b": "NOT NULL", "option_c": "CHECK", "option_d": "DEFAULT", "correct_answer": "b", "explanation": "NOT NULL constraint ensures that a column cannot have a NULL value."},
+        {"course_id": sql_id, "question": "What is a FOREIGN KEY?", "option_a": "A key from another country", "option_b": "A primary key copy", "option_c": "A field linking to another table's primary key", "option_d": "An encrypted key", "correct_answer": "c", "explanation": "A FOREIGN KEY is a field that refers to the PRIMARY KEY of another table, creating a link between the two tables."},
+        {"course_id": sql_id, "question": "Which SQL statement is used to create a new table?", "option_a": "MAKE TABLE", "option_b": "CREATE TABLE", "option_c": "NEW TABLE", "option_d": "BUILD TABLE", "correct_answer": "b", "explanation": "CREATE TABLE is used to create a new table in the database with specified columns and data types."},
+
+        # ==================== Java Questions (15) ====================
+        {"course_id": java_id, "question": "Which keyword is used to define a class in Java?", "option_a": "define", "option_b": "struct", "option_c": "class", "option_d": "object", "correct_answer": "c", "explanation": "The 'class' keyword is used to define a class in Java, which is a blueprint for objects."},
+        {"course_id": java_id, "question": "What is the entry point of a Java program?", "option_a": "start() method", "option_b": "run() method", "option_c": "main() method", "option_d": "init() method", "correct_answer": "c", "explanation": "The main() method (public static void main(String[] args)) is the entry point of every Java application."},
+        {"course_id": java_id, "question": "Which data type is used to create a variable that stores text?", "option_a": "Txt", "option_b": "string", "option_c": "String", "option_d": "text", "correct_answer": "c", "explanation": "String (with capital S) is a class in Java used to store text. It's not a primitive data type."},
+        {"course_id": java_id, "question": "How do you print a message in Java?", "option_a": "console.log()", "option_b": "print()", "option_c": "System.out.println()", "option_d": "echo()", "correct_answer": "c", "explanation": "System.out.println() is used to print output to the console in Java. println adds a newline after printing."},
+        {"course_id": java_id, "question": "Which keyword makes a variable unchangeable?", "option_a": "const", "option_b": "static", "option_c": "final", "option_d": "immutable", "correct_answer": "c", "explanation": "The 'final' keyword makes a variable a constant — its value cannot be changed after initialization."},
+        {"course_id": java_id, "question": "What does JVM stand for?", "option_a": "Java Very Modern", "option_b": "Java Virtual Machine", "option_c": "Java Variable Method", "option_d": "Java Visual Manager", "correct_answer": "b", "explanation": "JVM stands for Java Virtual Machine. It executes Java bytecode and provides platform independence."},
+        {"course_id": java_id, "question": "Which keyword is used for inheritance in Java?", "option_a": "inherits", "option_b": "implements", "option_c": "extends", "option_d": "super", "correct_answer": "c", "explanation": "The 'extends' keyword is used to create a subclass (child class) that inherits from a superclass (parent class)."},
+        {"course_id": java_id, "question": "Which of these is NOT a primitive data type in Java?", "option_a": "int", "option_b": "boolean", "option_c": "String", "option_d": "char", "correct_answer": "c", "explanation": "String is a reference type (class), not a primitive type. Java's 8 primitive types are: byte, short, int, long, float, double, boolean, char."},
+        {"course_id": java_id, "question": "What is method overloading?", "option_a": "Creating a method that crashes", "option_b": "Having multiple methods with the same name but different parameters", "option_c": "Calling a method multiple times", "option_d": "A deprecated feature", "correct_answer": "b", "explanation": "Method overloading allows multiple methods with the same name but different parameter lists (different number or types of parameters)."},
+        {"course_id": java_id, "question": "Which collection is ordered and allows duplicates?", "option_a": "Set", "option_b": "Map", "option_c": "List", "option_d": "Queue", "correct_answer": "c", "explanation": "A List is an ordered collection that allows duplicate elements. Common implementations include ArrayList and LinkedList."},
+        {"course_id": java_id, "question": "What is an interface in Java?", "option_a": "A graphical user interface", "option_b": "An abstract type that defines method signatures", "option_c": "A database connection", "option_d": "A type of loop", "correct_answer": "b", "explanation": "An interface is an abstract type that defines method signatures. Classes implement interfaces to provide concrete implementations."},
+        {"course_id": java_id, "question": "Which access modifier makes a member accessible only within its class?", "option_a": "public", "option_b": "protected", "option_c": "default", "option_d": "private", "correct_answer": "d", "explanation": "The 'private' access modifier restricts access to the member only within the declaring class."},
+        {"course_id": java_id, "question": "What is polymorphism?", "option_a": "Having many variables", "option_b": "The ability of an object to take many forms", "option_c": "A type of exception", "option_d": "A design pattern", "correct_answer": "b", "explanation": "Polymorphism allows objects of different classes to be treated as objects of a common superclass. It enables one interface for multiple implementations."},
+        {"course_id": java_id, "question": "Which keyword is used to handle exceptions in Java?", "option_a": "try-catch", "option_b": "handle-error", "option_c": "do-except", "option_d": "begin-rescue", "correct_answer": "a", "explanation": "Java uses try-catch blocks for exception handling. The try block contains code that might throw an exception, and catch handles it."},
+        {"course_id": java_id, "question": "What is the default value of an int variable in Java?", "option_a": "null", "option_b": "undefined", "option_c": "0", "option_d": "-1", "correct_answer": "c", "explanation": "The default value of an int (and all numeric types) in Java is 0. For boolean it's false, for objects it's null."},
+
+        # ==================== C++ Questions (15) ====================
+        {"course_id": cpp_id, "question": "Who developed C++?", "option_a": "Dennis Ritchie", "option_b": "Bjarne Stroustrup", "option_c": "James Gosling", "option_d": "Guido van Rossum", "correct_answer": "b", "explanation": "C++ was developed by Bjarne Stroustrup at Bell Labs starting in 1979 as an extension of the C language."},
+        {"course_id": cpp_id, "question": "Which symbol is used for single-line comments in C++?", "option_a": "#", "option_b": "//", "option_c": "/*", "option_d": "--", "correct_answer": "b", "explanation": "// is used for single-line comments. /* */ is used for multi-line comments in C++."},
+        {"course_id": cpp_id, "question": "Which header file is needed for input/output in C++?", "option_a": "<stdio.h>", "option_b": "<iostream>", "option_c": "<input>", "option_d": "<io.h>", "correct_answer": "b", "explanation": "<iostream> is the standard C++ header file for input/output operations. It includes cin, cout, cerr, and clog."},
+        {"course_id": cpp_id, "question": "What is the correct way to print text in C++?", "option_a": "print('Hello');", "option_b": "printf('Hello');", "option_c": "cout << \"Hello\";", "option_d": "echo 'Hello';", "correct_answer": "c", "explanation": "cout (character output) with the insertion operator << is the standard way to output text in C++."},
+        {"course_id": cpp_id, "question": "Which keyword is used to define a constant in C++?", "option_a": "final", "option_b": "constant", "option_c": "const", "option_d": "static", "correct_answer": "c", "explanation": "The 'const' keyword defines a constant variable whose value cannot be changed after initialization."},
+        {"course_id": cpp_id, "question": "What is a pointer in C++?", "option_a": "A type of array", "option_b": "A variable that stores a memory address", "option_c": "A function parameter", "option_d": "A loop control variable", "correct_answer": "b", "explanation": "A pointer is a variable that stores the memory address of another variable. It's declared using the * operator."},
+        {"course_id": cpp_id, "question": "What does OOP stand for?", "option_a": "Object Oriented Programming", "option_b": "Only Object Programs", "option_c": "Object Operating Protocol", "option_d": "Optimal Object Paradigm", "correct_answer": "a", "explanation": "OOP stands for Object-Oriented Programming. It's a paradigm based on the concept of objects containing data and code."},
+        {"course_id": cpp_id, "question": "Which operator is used to access members of a structure through a pointer?", "option_a": ".", "option_b": "->", "option_c": "::", "option_d": "&", "correct_answer": "b", "explanation": "The -> (arrow) operator is used to access a member of a structure or class through a pointer."},
+        {"course_id": cpp_id, "question": "What is the size of an int in C++ (typically)?", "option_a": "1 byte", "option_b": "2 bytes", "option_c": "4 bytes", "option_d": "8 bytes", "correct_answer": "c", "explanation": "On most modern systems, an int is 4 bytes (32 bits), capable of storing values from -2^31 to 2^31-1."},
+        {"course_id": cpp_id, "question": "Which keyword is used to allocate memory dynamically?", "option_a": "malloc", "option_b": "alloc", "option_c": "new", "option_d": "create", "correct_answer": "c", "explanation": "The 'new' keyword dynamically allocates memory on the heap and returns a pointer to the allocated memory."},
+        {"course_id": cpp_id, "question": "What is a constructor?", "option_a": "A function that destroys objects", "option_b": "A special function called when an object is created", "option_c": "A type of loop", "option_d": "A static method", "correct_answer": "b", "explanation": "A constructor is a special member function automatically called when an object is created. It initializes the object."},
+        {"course_id": cpp_id, "question": "Which of these is NOT an access specifier in C++?", "option_a": "public", "option_b": "private", "option_c": "protected", "option_d": "internal", "correct_answer": "d", "explanation": "C++ has three access specifiers: public, private, and protected. 'internal' is not a C++ access specifier."},
+        {"course_id": cpp_id, "question": "What does the '&' operator do when used with variables?", "option_a": "Logical AND", "option_b": "Returns the memory address", "option_c": "Bitwise OR", "option_d": "Multiplication", "correct_answer": "b", "explanation": "When used unary with a variable, & is the address-of operator that returns the memory address of the variable."},
+        {"course_id": cpp_id, "question": "What is a virtual function?", "option_a": "A function that doesn't exist", "option_b": "A function that can be overridden in derived classes", "option_c": "A recursive function", "option_d": "A static function", "correct_answer": "b", "explanation": "A virtual function is a member function declared in a base class that can be overridden in derived classes to achieve runtime polymorphism."},
+        {"course_id": cpp_id, "question": "Which STL container provides key-value pairs?", "option_a": "vector", "option_b": "list", "option_c": "map", "option_d": "set", "correct_answer": "c", "explanation": "std::map is an STL container that stores key-value pairs in sorted order by key. Each key must be unique."},
+
+        # ==================== React Questions (15) ====================
+        {"course_id": react_id, "question": "What is React?", "option_a": "A backend framework", "option_b": "A JavaScript library for building UIs", "option_c": "A database", "option_d": "An operating system", "correct_answer": "b", "explanation": "React is a JavaScript library developed by Meta for building user interfaces, particularly single-page applications."},
+        {"course_id": react_id, "question": "What is JSX?", "option_a": "A JavaScript database", "option_b": "A CSS framework", "option_c": "A syntax extension for JavaScript", "option_d": "A testing tool", "correct_answer": "c", "explanation": "JSX (JavaScript XML) is a syntax extension that allows writing HTML-like code in JavaScript. It gets compiled to React.createElement() calls."},
+        {"course_id": react_id, "question": "Which hook is used for state management in functional components?", "option_a": "useEffect", "option_b": "useState", "option_c": "useContext", "option_d": "useReducer", "correct_answer": "b", "explanation": "useState is the React hook that lets you add state variables to functional components."},
+        {"course_id": react_id, "question": "What is the virtual DOM?", "option_a": "A copy of the browser's DOM", "option_b": "A lightweight JavaScript representation of the real DOM", "option_c": "A new browser feature", "option_d": "A CSS framework", "correct_answer": "b", "explanation": "The Virtual DOM is a lightweight JavaScript object that React uses to track changes. It updates only what needs to change in the real DOM."},
+        {"course_id": react_id, "question": "Which method is used to render a React element?", "option_a": "ReactDOM.render()", "option_b": "React.display()", "option_c": "React.show()", "option_d": "ReactDOM.paint()", "correct_answer": "a", "explanation": "ReactDOM.render() (or createRoot().render() in React 18+) is used to render React elements into the DOM."},
+        {"course_id": react_id, "question": "What are props in React?", "option_a": "Internal component state", "option_b": "Read-only properties passed to components", "option_c": "CSS styles", "option_d": "Event handlers only", "correct_answer": "b", "explanation": "Props (properties) are read-only inputs passed from parent to child components. They make components reusable."},
+        {"course_id": react_id, "question": "Which hook handles side effects?", "option_a": "useState", "option_b": "useRef", "option_c": "useEffect", "option_d": "useMemo", "correct_answer": "c", "explanation": "useEffect is used for side effects like data fetching, DOM manipulation, subscriptions, and timers in functional components."},
+        {"course_id": react_id, "question": "What is the purpose of key prop in lists?", "option_a": "To style list items", "option_b": "To help React identify which items changed", "option_c": "To sort the list", "option_d": "To filter items", "correct_answer": "b", "explanation": "Keys help React identify which items have changed, been added, or removed. Each key should be unique among siblings."},
+        {"course_id": react_id, "question": "What is a React component?", "option_a": "A CSS class", "option_b": "A reusable piece of UI", "option_c": "A server endpoint", "option_d": "A database table", "correct_answer": "b", "explanation": "A React component is a reusable, self-contained piece of UI that can accept inputs (props) and return React elements."},
+        {"course_id": react_id, "question": "Which hook is used to access context?", "option_a": "useState", "option_b": "useEffect", "option_c": "useContext", "option_d": "useRef", "correct_answer": "c", "explanation": "useContext lets you read and subscribe to context from your component without prop drilling."},
+        {"course_id": react_id, "question": "What does 'lifting state up' mean?", "option_a": "Deleting state", "option_b": "Moving state to a common ancestor component", "option_c": "Using global variables", "option_d": "Increasing state values", "correct_answer": "b", "explanation": "Lifting state up means moving shared state to the closest common ancestor component so multiple children can access it."},
+        {"course_id": react_id, "question": "What is conditional rendering in React?", "option_a": "Rendering slow components", "option_b": "Rendering components based on conditions", "option_c": "Rendering only on mobile", "option_d": "Server-side rendering", "correct_answer": "b", "explanation": "Conditional rendering displays different UI elements based on conditions, using if statements, ternary operators, or && logic."},
+        {"course_id": react_id, "question": "What is the purpose of useRef hook?", "option_a": "State management", "option_b": "To persist values across renders without re-rendering", "option_c": "API calls", "option_d": "Routing", "correct_answer": "b", "explanation": "useRef returns a mutable ref object that persists across renders. It's commonly used to access DOM elements or store mutable values."},
+        {"course_id": react_id, "question": "What is React Router used for?", "option_a": "State management", "option_b": "API calls", "option_c": "Client-side routing/navigation", "option_d": "Styling", "correct_answer": "c", "explanation": "React Router is a library for client-side routing, enabling navigation between different views/pages without full page reloads."},
+        {"course_id": react_id, "question": "What is the difference between state and props?", "option_a": "No difference", "option_b": "State is internal and mutable, props are external and read-only", "option_c": "Props are internal, state is external", "option_d": "Both are immutable", "correct_answer": "b", "explanation": "State is managed within the component and can be updated. Props are passed from parent components and are read-only within the receiving component."},
+
+        # ==================== PHP Questions (15) ====================
+        {"course_id": php_id, "question": "What does PHP stand for?", "option_a": "Personal Home Page", "option_b": "PHP: Hypertext Preprocessor", "option_c": "Private Home Page", "option_d": "Pre Hypertext Processor", "correct_answer": "b", "explanation": "PHP originally stood for 'Personal Home Page' but now stands for 'PHP: Hypertext Preprocessor' — a recursive acronym."},
+        {"course_id": php_id, "question": "How do you start a PHP code block?", "option_a": "<php>", "option_b": "<?php", "option_c": "<script php>", "option_d": "<%php", "correct_answer": "b", "explanation": "PHP code blocks start with <?php and end with ?>. The opening tag tells the server to start processing PHP code."},
+        {"course_id": php_id, "question": "Which symbol is used to define a variable in PHP?", "option_a": "&", "option_b": "#", "option_c": "$", "option_d": "@", "correct_answer": "c", "explanation": "In PHP, all variables start with a $ sign, e.g., $name = 'John';"},
+        {"course_id": php_id, "question": "How do you concatenate strings in PHP?", "option_a": "+ operator", "option_b": ". operator", "option_c": "& operator", "option_d": ", operator", "correct_answer": "b", "explanation": "PHP uses the dot (.) operator for string concatenation. Example: $full = $first . ' ' . $last;"},
+        {"course_id": php_id, "question": "Which function is used to output text in PHP?", "option_a": "print()", "option_b": "echo", "option_c": "write()", "option_d": "Both A and B", "correct_answer": "d", "explanation": "Both echo and print() can output text in PHP. echo is slightly faster and can take multiple parameters."},
+        {"course_id": php_id, "question": "Which superglobal is used to collect form data sent via POST?", "option_a": "$_GET", "option_b": "$_POST", "option_c": "$_REQUEST", "option_d": "$_FORM", "correct_answer": "b", "explanation": "$_POST is a superglobal array that collects data submitted via the HTTP POST method."},
+        {"course_id": php_id, "question": "How do you create an array in PHP?", "option_a": "$arr = array();", "option_b": "$arr = [];", "option_c": "Both A and B", "option_d": "$arr = new Array();", "correct_answer": "c", "explanation": "Both array() and [] (short array syntax, PHP 5.4+) can be used to create arrays in PHP."},
+        {"course_id": php_id, "question": "Which function returns the length of a string?", "option_a": "len()", "option_b": "length()", "option_c": "strlen()", "option_d": "size()", "correct_answer": "c", "explanation": "strlen() returns the length of a string in PHP. It counts the number of characters."},
+        {"course_id": php_id, "question": "What is the correct way to end a PHP statement?", "option_a": ".", "option_b": ";", "option_c": ":", "option_d": "Nothing", "correct_answer": "b", "explanation": "PHP statements must end with a semicolon (;). This is required for each individual statement."},
+        {"course_id": php_id, "question": "Which loop executes at least once?", "option_a": "for", "option_b": "while", "option_c": "do...while", "option_d": "foreach", "correct_answer": "c", "explanation": "The do...while loop executes the code block at least once before checking the condition."},
+        {"course_id": php_id, "question": "Which function connects to a MySQL database?", "option_a": "mysql_connect()", "option_b": "mysqli_connect()", "option_c": "db_connect()", "option_d": "database_open()", "correct_answer": "b", "explanation": "mysqli_connect() is the modern way to connect to MySQL. The older mysql_connect() is deprecated."},
+        {"course_id": php_id, "question": "What is the scope of a variable declared inside a function?", "option_a": "Global", "option_b": "Local", "option_c": "Static", "option_d": "Universal", "correct_answer": "b", "explanation": "Variables declared inside a PHP function have local scope and can only be accessed within that function."},
+        {"course_id": php_id, "question": "Which operator is used for identical comparison?", "option_a": "==", "option_b": "===", "option_c": "!=", "option_d": "<>", "correct_answer": "b", "explanation": "=== is the identical operator that checks if values are equal AND of the same data type (strict comparison)."},
+        {"course_id": php_id, "question": "What is a PHP session?", "option_a": "A database table", "option_b": "A way to store user data across multiple pages", "option_c": "A type of cookie", "option_d": "A login form", "correct_answer": "b", "explanation": "A PHP session stores user information on the server that persists across multiple pages during a user's visit."},
+        {"course_id": php_id, "question": "Which function is used to include a file in PHP?", "option_a": "import()", "option_b": "include()", "option_c": "require()", "option_d": "Both B and C", "correct_answer": "d", "explanation": "Both include() and require() are used to insert the content of one PHP file into another. require() produces a fatal error if the file is not found."},
+
+        # ==================== TypeScript Questions (15) ====================
+        {"course_id": ts_id, "question": "What is TypeScript?", "option_a": "A new programming language", "option_b": "A typed superset of JavaScript", "option_c": "A JavaScript replacement", "option_d": "A database language", "correct_answer": "b", "explanation": "TypeScript is a typed superset of JavaScript developed by Microsoft. It adds static type definitions to JavaScript."},
+        {"course_id": ts_id, "question": "What file extension is used for TypeScript files?", "option_a": ".js", "option_b": ".ts", "option_c": ".typ", "option_d": ".tsc", "correct_answer": "b", "explanation": "TypeScript files use the .ts extension (or .tsx for files with JSX). They are compiled to .js files."},
+        {"course_id": ts_id, "question": "How do you declare a variable with a specific type?", "option_a": "let name: string", "option_b": "let string name", "option_c": "string let name", "option_d": "let name = string", "correct_answer": "a", "explanation": "TypeScript uses the syntax 'let name: type' to declare variables with type annotations."},
+        {"course_id": ts_id, "question": "What is an interface in TypeScript?", "option_a": "A class", "option_b": "A contract that defines the structure of an object", "option_c": "A function", "option_d": "A module", "correct_answer": "b", "explanation": "An interface defines a contract for the shape of an object, specifying what properties and methods it should have."},
+        {"course_id": ts_id, "question": "Which command compiles TypeScript to JavaScript?", "option_a": "ts-compile", "option_b": "tsc", "option_c": "typescript", "option_d": "ts-build", "correct_answer": "b", "explanation": "tsc (TypeScript Compiler) is the command-line tool that compiles .ts files to .js files."},
+        {"course_id": ts_id, "question": "What is the 'any' type?", "option_a": "A number type", "option_b": "A type that can hold any value", "option_c": "A string type", "option_d": "An error type", "correct_answer": "b", "explanation": "The 'any' type opts out of type checking and allows a variable to hold a value of any type. Use it sparingly."},
+        {"course_id": ts_id, "question": "What are generics in TypeScript?", "option_a": "Generic functions", "option_b": "Templates that work with any data type", "option_c": "A naming convention", "option_d": "Error handlers", "correct_answer": "b", "explanation": "Generics allow you to create reusable components that work with multiple types while maintaining type safety."},
+        {"course_id": ts_id, "question": "What is the 'void' type used for?", "option_a": "Functions that return null", "option_b": "Functions that don't return a value", "option_c": "Empty variables", "option_d": "Deleted objects", "correct_answer": "b", "explanation": "The void type indicates that a function doesn't return a value. It's the opposite of any."},
+        {"course_id": ts_id, "question": "What is a tuple in TypeScript?", "option_a": "A type of loop", "option_b": "An array with fixed number of elements with known types", "option_c": "A class property", "option_d": "A function parameter", "correct_answer": "b", "explanation": "A tuple is an array where the type of each element is known and can be different. Example: [string, number]."},
+        {"course_id": ts_id, "question": "What is an enum in TypeScript?", "option_a": "A function type", "option_b": "A way to define a set of named constants", "option_c": "A loop structure", "option_d": "An import statement", "correct_answer": "b", "explanation": "Enums allow you to define a set of named constants, making code more readable and maintainable."},
+        {"course_id": ts_id, "question": "What does the 'readonly' modifier do?", "option_a": "Makes properties writable", "option_b": "Makes properties that can only be read, not modified", "option_c": "Deletes properties", "option_d": "Hides properties", "correct_answer": "b", "explanation": "The 'readonly' modifier makes a property immutable after initialization — it can be read but not reassigned."},
+        {"course_id": ts_id, "question": "What is type inference?", "option_a": "Explicitly declaring types", "option_b": "TypeScript automatically determining types", "option_c": "Converting types", "option_d": "Removing types", "correct_answer": "b", "explanation": "Type inference is TypeScript's ability to automatically determine the type of a variable based on its value, without explicit annotation."},
+        {"course_id": ts_id, "question": "What is a union type?", "option_a": "A single type", "option_b": "A type that can be one of several types", "option_c": "A merged object", "option_d": "An array type", "correct_answer": "b", "explanation": "A union type allows a variable to hold one of several types, using the | operator. Example: string | number."},
+        {"course_id": ts_id, "question": "What is the 'never' type?", "option_a": "A type for null values", "option_b": "A type for functions that never return", "option_c": "A deprecated type", "option_d": "A boolean type", "correct_answer": "b", "explanation": "The 'never' type represents values that never occur. It's used for functions that always throw exceptions or have infinite loops."},
+        {"course_id": ts_id, "question": "What is type assertion?", "option_a": "Checking types at runtime", "option_b": "Telling the compiler to treat a value as a specific type", "option_c": "Creating new types", "option_d": "Deleting types", "correct_answer": "b", "explanation": "Type assertion tells the TypeScript compiler to treat a value as a specific type. Use 'as' syntax: value as Type."},
     ]
 
     for q in questions_data:
-        if not db.query(models.Question).filter(models.Question.question == q["question"]).first():
-            db.add(models.Question(**q))
+        db.add(models.Question(**q))
 
     db.commit()
-    print("Database seeded successfully!")
+    print(f"Database seeded successfully with {len(courses_data)} courses and {len(questions_data)} questions!")
     db.close()
 
 if __name__ == "__main__":

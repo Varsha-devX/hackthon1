@@ -5,12 +5,50 @@ from .. import models, schemas, auth, database
 
 router = APIRouter()
 
-@router.get("/{course_id}", response_model=List[schemas.Question])
-def get_quiz_questions(course_id: int, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    questions = db.query(models.Question).filter(models.Question.course_id == course_id).all()
-    if not questions:
-        raise HTTPException(status_code=404, detail="No quiz found for this course")
-    return questions
+# IMPORTANT: Static routes MUST come before dynamic routes
+# Otherwise FastAPI interprets "results" and "leaderboard" as a {course_id}
+
+@router.get("/results", response_model=List[schemas.UserScore])
+def get_results(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+    results = db.query(models.UserScore).filter(models.UserScore.user_id == current_user.id).order_by(models.UserScore.timestamp.desc()).all()
+    
+    response_data = []
+    for r in results:
+        course = db.query(models.Course).filter(models.Course.id == r.course_id).first()
+        response_data.append({
+            "id": r.id,
+            "user_id": r.user_id,
+            "score": r.score,
+            "total_questions": r.total_questions,
+            "percentage": round((r.score / r.total_questions) * 100, 2) if r.total_questions > 0 else 0,
+            "time_taken": r.time_taken if r.time_taken else 0,
+            "timestamp": r.timestamp,
+            "course_name": course.name if course else "Unknown"
+        })
+    return response_data
+
+@router.get("/leaderboard/{course_id}", response_model=List[schemas.LeaderboardEntry])
+def get_leaderboard(course_id: int, db: Session = Depends(database.get_db)):
+    # Order by score descending, then time_taken ascending (fastest)
+    results = db.query(models.UserScore).filter(models.UserScore.course_id == course_id).order_by(
+        models.UserScore.score.desc(),
+        models.UserScore.time_taken.asc()
+    ).limit(20).all()
+    
+    response_data = []
+    for r in results:
+        user = db.query(models.User).filter(models.User.id == r.user_id).first()
+        if user:
+            response_data.append({
+                "user_id": r.user_id,
+                "name": user.name,
+                "score": r.score,
+                "total_questions": r.total_questions,
+                "percentage": round((r.score / r.total_questions) * 100, 2) if r.total_questions > 0 else 0,
+                "time_taken": r.time_taken if r.time_taken else 0,
+                "timestamp": r.timestamp
+            })
+    return response_data
 
 @router.post("/submit", response_model=schemas.QuizResult)
 def submit_quiz(submission: schemas.QuizSubmission, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
@@ -74,45 +112,10 @@ def submit_quiz(submission: schemas.QuizSubmission, current_user: models.User = 
         "details": details
     }
 
-@router.get("/results", response_model=List[schemas.UserScore])
-def get_results(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    results = db.query(models.UserScore).filter(models.UserScore.user_id == current_user.id).order_by(models.UserScore.timestamp.desc()).all()
-    
-    response_data = []
-    for r in results:
-        course = db.query(models.Course).filter(models.Course.id == r.course_id).first()
-        response_data.append({
-            "id": r.id,
-            "user_id": r.user_id,
-            "score": r.score,
-            "total_questions": r.total_questions,
-            "percentage": round((r.score / r.total_questions) * 100, 2) if r.total_questions > 0 else 0,
-            "time_taken": r.time_taken,
-            "timestamp": r.timestamp,
-            "course_name": course.name if course else "Unknown"
-        })
-    return response_data
-
-@router.get("/leaderboard/{course_id}", response_model=List[schemas.LeaderboardEntry])
-def get_leaderboard(course_id: int, db: Session = Depends(database.get_db)):
-    # Order by score descending, then time_taken ascending (fastest)
-    results = db.query(models.UserScore).filter(models.UserScore.course_id == course_id).order_by(
-        models.UserScore.score.desc(),
-        models.UserScore.time_taken.asc()
-    ).limit(10).all()
-    
-    response_data = []
-    for r in results:
-        # get user name
-        user = db.query(models.User).filter(models.User.id == r.user_id).first()
-        if user:
-            response_data.append({
-                "user_id": r.user_id,
-                "name": user.name,
-                "score": r.score,
-                "total_questions": r.total_questions,
-                "percentage": round((r.score / r.total_questions) * 100, 2) if r.total_questions > 0 else 0,
-                "time_taken": r.time_taken,
-                "timestamp": r.timestamp
-            })
-    return response_data
+# Dynamic route MUST be last
+@router.get("/{course_id}", response_model=List[schemas.Question])
+def get_quiz_questions(course_id: int, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+    questions = db.query(models.Question).filter(models.Question.course_id == course_id).all()
+    if not questions:
+        raise HTTPException(status_code=404, detail="No quiz found for this course")
+    return questions

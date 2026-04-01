@@ -4,10 +4,11 @@ sqlalchemy
 pydantic
 pydantic-settings
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 python-multipart
 python-dotenv
 alembic
 psycopg2-binary
 pytest
 requests
+email-validator

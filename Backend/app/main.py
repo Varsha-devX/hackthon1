@@ -7,6 +7,15 @@ import logging
 
 app = FastAPI(title="Quiz App API", version="1.0.0")
 
+# CORS middleware configuration - allow all origins for development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def fix_sqlite_schema():
     if "sqlite" not in str(engine.url):
@@ -34,23 +43,7 @@ def startup_event():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "database_url": engine.url}
-
-# CORS middleware configuration
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    return {"status": "ok"}
 
 # Include Routers
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
