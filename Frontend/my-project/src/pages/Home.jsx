@@ -5,13 +5,18 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-// Language config with W3Schools-style colors
+// Language config with W3Schools-style colors - 10 languages
 const LANGUAGES = [
-  { name: 'HTML',       color: '#D9534F', bg: '#F9E8E8' },
-  { name: 'CSS',        color: '#5B9BD5', bg: '#E8F0FA' },
-  { name: 'JavaScript', color: '#F0DB4F', bg: '#FDF8E4', textColor: '#333' },
-  { name: 'Python',     color: '#306998', bg: '#E5EDF5' },
-  { name: 'SQL',        color: '#E97B00', bg: '#FDF0E0' },
+  { name: 'HTML',       color: '#D9534F', bg: '#F9E8E8', icon: '🌐' },
+  { name: 'CSS',        color: '#5B9BD5', bg: '#E8F0FA', icon: '🎨' },
+  { name: 'JavaScript', color: '#F0DB4F', bg: '#FDF8E4', textColor: '#333', icon: '⚡' },
+  { name: 'Python',     color: '#306998', bg: '#E5EDF5', icon: '🐍' },
+  { name: 'SQL',        color: '#E97B00', bg: '#FDF0E0', icon: '🗄️' },
+  { name: 'Java',       color: '#ED8B00', bg: '#FFF3E0', icon: '☕' },
+  { name: 'C++',        color: '#00599C', bg: '#E3F2FD', icon: '⚙️' },
+  { name: 'React',      color: '#61DAFB', bg: '#E0F7FA', icon: '⚛️' },
+  { name: 'PHP',        color: '#777BB4', bg: '#EDE7F6', icon: '🐘' },
+  { name: 'TypeScript', color: '#3178C6', bg: '#E8EAF6', icon: '📘' },
 ];
 
 const Home = () => {
@@ -136,8 +141,10 @@ const Home = () => {
 
         {/* Language Cards Section */}
         <section className="py-16 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-extrabold text-gray-800 mb-3 text-center">Choose a Language Quiz</h2>
+            <p className="text-gray-500 text-center mb-12 font-medium text-lg">10 languages • 15 questions each • Instant results with explanations</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {LANGUAGES.map((lang) => {
                 const course = courses.find(c => c.name.toLowerCase() === lang.name.toLowerCase());
                 return (
@@ -152,19 +159,22 @@ const Home = () => {
                         className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 text-white font-extrabold text-xl shadow-lg"
                         style={{ backgroundColor: lang.color }}
                       >
-                        {lang.name.charAt(0)}
+                        <span className="text-2xl">{lang.icon}</span>
                       </div>
                       <h3 className="text-2xl font-extrabold text-gray-900 mb-2 group-hover:text-[#04AA6D] transition">
                         {lang.name}
                       </h3>
-                      <p className="text-gray-500 font-medium text-sm mb-6">
+                      <p className="text-gray-500 font-medium text-sm mb-4 line-clamp-2">
                         {course?.description || `Learn ${lang.name} with interactive quizzes`}
                       </p>
-                      <div 
-                        className="inline-flex items-center gap-2 font-bold text-sm py-2 px-4 rounded-full transition-all group-hover:gap-3"
-                        style={{ color: lang.color, backgroundColor: lang.bg }}
-                      >
-                        Take Quiz <ArrowRight size={14} />
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-400 uppercase">15 Questions</span>
+                        <div 
+                          className="inline-flex items-center gap-2 font-bold text-sm py-2 px-4 rounded-full transition-all group-hover:gap-3"
+                          style={{ color: lang.color, backgroundColor: lang.bg }}
+                        >
+                          Take Quiz <ArrowRight size={14} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -172,7 +182,7 @@ const Home = () => {
               })}
 
               {/* Get Started Card */}
-              <div className="rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 bg-gradient-to-br from-green-50 to-white flex flex-col justify-center items-center p-8 text-center">
+              <div className="rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 bg-gradient-to-br from-green-50 to-white flex flex-col justify-center items-center p-8 text-center sm:col-span-2 lg:col-span-1">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 bg-[#04AA6D] text-white shadow-lg">
                   <Zap size={28} />
                 </div>
@@ -193,11 +203,11 @@ const Home = () => {
         <section className="bg-[#282A35] py-12 px-6">
           <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl md:text-4xl font-black text-white mb-1">5+</div>
+              <div className="text-3xl md:text-4xl font-black text-white mb-1">10</div>
               <div className="text-green-400 text-sm font-bold uppercase tracking-widest">Languages</div>
             </div>
             <div>
-              <div className="text-3xl md:text-4xl font-black text-white mb-1">25+</div>
+              <div className="text-3xl md:text-4xl font-black text-white mb-1">150+</div>
               <div className="text-green-400 text-sm font-bold uppercase tracking-widest">Quiz Questions</div>
             </div>
             <div>
@@ -223,21 +233,21 @@ const Home = () => {
                 <Code size={32} />
               </div>
               <h3 className="text-xl font-extrabold mb-3">1. Pick a Language</h3>
-              <p className="text-gray-500 font-medium">Choose from HTML, CSS, JavaScript, Python, or SQL</p>
+              <p className="text-gray-500 font-medium">Choose from 10 popular programming languages</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <BookOpen size={32} />
               </div>
               <h3 className="text-xl font-extrabold mb-3">2. Take the Quiz</h3>
-              <p className="text-gray-500 font-medium">Answer multiple-choice questions to test your skills</p>
+              <p className="text-gray-500 font-medium">Answer 15 multiple-choice questions per language</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 text-[#04AA6D] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <Award size={32} />
               </div>
               <h3 className="text-xl font-extrabold mb-3">3. Get Your Score</h3>
-              <p className="text-gray-500 font-medium">See your results instantly and track progress on your dashboard</p>
+              <p className="text-gray-500 font-medium">See detailed results with explanations for every answer</p>
             </div>
           </div>
         </section>
